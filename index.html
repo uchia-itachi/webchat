@@ -63,8 +63,19 @@
           overflow: auto;
           background: #ece0e0;
         }
+        #pchat-window{
+          height: 200px;
+          overflow: auto;
+          background: #dadce8;
+        }
 
         #output p{
+          padding: 14px 0px;
+          margin: 0 20px;
+          border-bottom: 1px solid #e9e9e9;
+          color: #555;
+        }
+        #output1 p{
           padding: 14px 0px;
           margin: 0 20px;
           border-bottom: 1px solid #e9e9e9;
@@ -86,6 +97,9 @@
         }
 
         #output strong{
+          color: #575ed8;
+        }
+        #output1 strong{
           color: #575ed8;
         }
         #active-users{
@@ -282,10 +296,10 @@
         </div>
       </div>
      <div class="main">
-       <span style="font-size:30px;cursor:pointer;display:none;color:white;position: relative;text-align: center;;" id="open" onclick="openNav()">&#9776; User</span>
+       <span style="font-size:30px;cursor:pointer;display:none;color:white;position: relative;text-align: center;;" id="open" onclick="openNav()">&#9776; Users</span>
 
         <div id="local-chat">
-            <h2>Local GC</h2>
+            <h2>Community GC</h2>
             <div id="chat-window">
                 <div id="output"></div>
                 <div id="feedback"></div>
@@ -298,9 +312,10 @@
 <!-- //start -->
 <div class="chat-popup" id="myForm">
   <div class="form-container">
-    <h1>Chat</h1>
-
-    <label for="msg"><b>Message</b></label>
+    <h1 id="pusername">Chat</h1>
+    <div id="pchat-window">
+      <div id="output1"></div>
+    </div>
     <input placeholder="Type message.." id="msg" required></input>
 
     <button type="submit" onclick="sendmessage()" class="btn">Send</button>
@@ -314,13 +329,14 @@
                 <span>This is just a demo project.Feel free to enjoy</span>
               </div>
               <div class="username-text">
-                <input type="text" id='uname' placeholder="USER-NAME || NICKNAME"><br>
+                <input type="text" id='uname' placeholder="USER-NAME || NICKNAME" required><br>
                 <button id="usubmit" >Submit</button>
               </div>
         </div>
 
     </body>
     <script>
+    var i=1;
     var socket = io.connect();
     var message= document.getElementById('message');
     var username;
@@ -332,18 +348,27 @@
     $("#list").on('click', 'li', function(){
     document.getElementById("myForm").style.display = "block";
     puser=$(this).html();
+    document.getElementById('pusername').innerHTML=puser;
     });
     function closeForm() {
       document.getElementById("myForm").style.display = "none";
     }
     function sendmessage(){
+       var msg=document.getElementById('msg').value
       socket.emit('privatemessage',{
         user:puser,
-        msg:document.getElementById('msg').value
+        msg
       });
+      output1.innerHTML+='<p><strong>'+username+': '+'</strong>'+msg+'</p>';
     }
-    socket.on('privatemessage',function(msg){
-      alert(msg);
+
+    socket.on('privatemessage',function(data){
+      document.getElementById('pusername').innerHTML=data.user;
+      if ($('#myForm').is(":hidden")) {
+        puser=data.user;
+        document.getElementById("myForm").style.display = "block";
+      }
+      output1.innerHTML+='<p><strong>'+data.user+': '+'</strong>'+data.msg+'</p>';
     });
 
 
@@ -366,7 +391,7 @@
       if (event.keyCode === 13) {
         username=document.getElementById('uname').value;
         document.getElementById('username-box').style.display="none";
-        document.getElementsByClass('main').style.display="block";
+        document.getElementById('open').style.display="block";
         document.getElementById('local-chat').style.display="block";
         document.getElementById('active-users').style.display="block";
         socket.emit('username',username);
@@ -408,15 +433,8 @@
 
     // recieve message and output
     socket.on('chat', function(data){
-      if(data.username == username)
-      {
-
-      }
-      else {
         feedback.innerHTML="";
         output.innerHTML+='<p><strong>'+data.username+': '+'</strong>'+data.message+'</p>';
-      }
-
     });
 
     // if user has stopped typing remove is typing

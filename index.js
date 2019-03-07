@@ -2,7 +2,7 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var port = process.env.PORT || 3000;
-
+var i=1;
 var usernames = [];
 var current_sockets=new Array();
 
@@ -56,9 +56,11 @@ io.on('connection', function(socket){
   socket.on('privatemessage',function(data){
 
     var i= usernames.indexOf(data.user);
+      console.log(data);
+    data.user=socket.username;
     if(i!=-1)
-    io.to(current_sockets[i].id).emit("privatemessage", data.msg);
-    console.log(data);
+    io.to(current_sockets[i].id).emit("privatemessage", data);
+
   });
 
 });
