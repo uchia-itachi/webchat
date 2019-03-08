@@ -61,25 +61,23 @@
         #chat-window{
           height: 400px;
           overflow: auto;
-          background: #ece0e0;
+          background: #595d6157;
         }
         #pchat-window{
           height: 200px;
           overflow: auto;
-          background: #dadce8;
+          background: #3739427a;
         }
 
         #output p{
           padding: 14px 0px;
           margin: 0 20px;
-          border-bottom: 1px solid #e9e9e9;
-          color: #555;
+          color: white;
         }
         #output1 p{
           padding: 14px 0px;
           margin: 0 20px;
-          border-bottom: 1px solid #e9e9e9;
-          color: #555;
+          color: white;
         }
 
         #feedback p{
@@ -153,18 +151,17 @@
         /* The popup chat - hidden by default */
         .chat-popup {
           display: none;
-          position: fixed;
-          bottom: 0;
-          right: 15px;
-          border: 3px solid #f1f1f1;
-          z-index: 9;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%,-50%);
         }
 
         /* Add styles to the form container */
         .form-container {
-          max-width: 300px;
+          width: 343px;
           padding: 10px;
-          background-color: white;
+          background-color: #29343e;
         }
 
         /* Full-width textarea */
@@ -186,19 +183,17 @@
 
         /* Set a style for the submit/send button */
         .form-container .btn {
-          background-color: #4CAF50;
           color: white;
           padding: 16px 20px;
           border: none;
           cursor: pointer;
           width: 100%;
-          margin-bottom:10px;
           opacity: 0.8;
+          background: transparent;
+          border: 1px solid #3498db;
+          border-radius: 16px;
         }
-        /* Add a red background color to the cancel button */
-        .form-container .cancel {
-          background-color: red;
-        }
+
         /* Add some hover effects to buttons */
         .form-container .btn:hover, .open-button:hover {
           opacity: 1;
@@ -212,6 +207,7 @@
             text-align: center;
             font-family: monospace;
             font-size: 23px;
+            width: 80%;
         }
         .username-text{
             top: 55%;
@@ -224,14 +220,19 @@
             color: black;
             font-family: monospace;
             width: 380px;
-            padding: 16px 16px 16px 0px;
+            padding: 16px 16px 16px 4px;
             text-align: center;
+            background-color: #29343e;
+            border: none;
+            border-bottom: 1px solid;
           }
           #send{
             font-family: monospace;
             width: 400px;
             padding: 16px 16px 16px 0px;
             text-align: center;
+            border: none;
+            background-color: #29343e;
           }
 
 
@@ -274,17 +275,50 @@
           transition: margin-left .5s;
           padding: 16px;
         }
-
+       #msg{
+         padding: 10px 20px;
+         box-sizing: border-box;
+         border: 0;
+         width: 100%;
+         font-family: monospace;
+         font-size: 16px;
+         background: transparent;
+         color: white;
+         border: 1px solid #3498db;
+         border-radius: 11px;
+       }
         @media screen and (max-height: 450px) {
           .sidenav {padding-top: 15px;}
           .sidenav a {font-size: 18px;}
         }
 
-        /* @media screen and (min-width: 706px) {
-            .sidenav{
-              width: 100%;
+        @media screen and (width: 360px) {
+            .username-tag{
+              font-size: 20px;
+              top: 32%;
             }
-          } */
+          }
+          @media screen and (min-width: 375px) {
+              .username-tag{
+                font-size: 17px;
+                top: 30%;
+              }
+              .username-text{
+                top: 58%;
+              }
+            }
+            @media screen and (max-width: 320px) {
+                #local-chat{
+                  top: 58%;
+                  width: 302px;
+                }
+                #message{
+                  width: 282px;
+                }
+                #send{
+                  width: 302px;
+                }
+              }
       </style>
     </head>
     <body>
@@ -316,10 +350,10 @@
     <div id="pchat-window">
       <div id="output1"></div>
     </div>
-    <input placeholder="Type message.." id="msg" required></input>
-
-    <button type="submit" onclick="sendmessage()" class="btn">Send</button>
-    <button type="button" class="btn cancel" onclick="closeForm()">Close</button>
+      <br>
+        <input placeholder="Type message.." id="msg" required></input><br><br>
+        <button type="submit" onclick="sendmessage()" class="btn">Send</button><br><br>
+        <button type="button" class="btn cancel" id="jj"onclick="closeForm()">Close</button>
   </div>
 </div>
 <!-- //end -->
@@ -347,6 +381,8 @@
     var puser='';
     $("#list").on('click', 'li', function(){
     document.getElementById("myForm").style.display = "block";
+    document.getElementById("mySidenav").style.width = "0";
+    document.getElementById("local-chat").style.display = "none";
     puser=$(this).html();
     document.getElementById('pusername').innerHTML=puser;
     });
@@ -435,6 +471,7 @@
     socket.on('chat', function(data){
         feedback.innerHTML="";
         output.innerHTML+='<p><strong>'+data.username+': '+'</strong>'+data.message+'</p>';
+        $("#chat-window").scrollTop($("#chat-window").children().height());
     });
 
     // if user has stopped typing remove is typing
@@ -451,11 +488,13 @@
     socket.on('typing', function(username){
       var html = "<p><em>"+username+" is typing</em></p>";
       $('#feedback').append(html);
+      $("#chat-window").scrollTop($("#chat-window").children().height());
     });
 
     //notify if a user has joined
     socket.on('joined',function(data){
       joined.innerHTML='<p>'+data.username+' has joined</p>';
+      $("#chat-window").scrollTop($("#chat-window").children().height());
       $(list).empty();
       var node = document.createElement("LI");             // Create a <li> node
       var textnode = document.createTextNode(username);         // Create a text node
@@ -475,6 +514,7 @@
     //notify if a user has disconnected
     socket.on('user-disconnected', function(data){
       joined.innerHTML='<p>'+data.username+' has disconnected</p>';
+      $("#chat-window").scrollTop($("#chat-window").children().height());
       $(list).empty();
       var node = document.createElement("LI");;              // Create a <li> node
       var textnode = document.createTextNode(username);         // Create a text node
@@ -501,9 +541,15 @@
     </script>
     <script>
     function openNav() {
+      if(window.innerWidth>=768){
     document.getElementById("mySidenav").style.width = "250px";
     document.getElementById("local-chat").style.marginLeft = "105px";
-    document.getElementById("open").style.display = "none";
+    document.getElementById("open").style.display = "none";}
+    else{
+      document.getElementById("mySidenav").style.width = "100%";
+      document.getElementById("local-chat").style.marginLeft = "0px";
+      document.getElementById("open").style.display = "none";
+    }
   }
 
   function closeNav() {
@@ -512,4 +558,14 @@
     document.getElementById("open").style.display = "block";
   }
 </script>
+        <script>
+            $(document).ready(function(){
+              $("#jj").click(function(){
+                 $("#mySidenav").css("width","0");
+                 $("#local-chat").css("margin-left","0px");
+                 $("#open").css("display","block");
+                 $("#local-chat").css({"display":"block"});
+              });
+            });
+        </script>
 </html>
